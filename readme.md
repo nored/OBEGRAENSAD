@@ -15,6 +15,8 @@ Hacking the OBEGRAENSAD is straight forward. Hoock in at the open solderpoints a
 
 Original Instructions below tho i went with the pinout from https://github.com/fairecasoimeme/Frekvens_ESP8266
 
+![OBEGRAENSAD](panel.gif)
+
 ---
 
 Contributions welcome.
