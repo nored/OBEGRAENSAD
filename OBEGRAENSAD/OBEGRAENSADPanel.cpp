@@ -11,8 +11,7 @@ FrekvensPanel::FrekvensPanel(int p_latch, int p_clock, int p_data, int bitDepth,
     init(p_latch, p_clock, p_data, bitDepth, numPanels);
 }
 
-FrekvensPanel::FrekvensPanel(int p_latch, int p_clock, int p_data) :
-FrekvensPanel(p_latch, p_clock, p_data, 0, 1) { }
+FrekvensPanel::FrekvensPanel(int p_latch, int p_clock, int p_data) : FrekvensPanel(p_latch, p_clock, p_data, 0, 1) {}
 
 void FrekvensPanel::init(int p_latch, int p_clock, int p_data, int bitDepth, int numPanels)
 {
@@ -29,15 +28,15 @@ void FrekvensPanel::init(int p_latch, int p_clock, int p_data, int bitDepth, int
     _pageStride = 16 * numPanels;
     _numWords = _numPages * _pageStride;
     _numPixels = 16 * 16 * numPanels;
-    _addressMask = _numPixels-1;
+    _addressMask = _numPixels - 1;
     _width = 16;
     _height = 16 * _numPanels;
-    buf = (unsigned short*) malloc(_numWords * sizeof(unsigned short));
+    buf = (unsigned short *)malloc(_numWords * sizeof(unsigned short));
 }
 
 void FrekvensPanel::clear()
 {
-    for (int i=0;i<_numWords;i++)
+    for (int i = 0; i < _numWords; i++)
     {
         buf[i] = 0;
     }
@@ -45,15 +44,14 @@ void FrekvensPanel::clear()
 
 void FrekvensPanel::writeDeepPixel(unsigned short x, unsigned short y, unsigned short value)
 {
-    if (x > 7) { y += 0x10; x &= 0x07; }
-    unsigned int address = (x + (y << 3)) & _addressMask;
+    unsigned int address = (lut[y][x]) & _addressMask;
     unsigned short ba = address >> 4;
     unsigned short br = address & 0x0F;
     unsigned short ms = (1 << br);
     unsigned short mc = 0xFFFF ^ ms;
-    unsigned short* wp = &buf[ba];
-    unsigned short ofs = (x+y) & _pageMask;
-    for (unsigned int i=0;i<_numPages;i++)
+    unsigned short *wp = &buf[ba];
+    unsigned short ofs = (x + y) & _pageMask;
+    for (unsigned int i = 0; i < _numPages; i++)
     {
         ofs++;
         ofs &= _pageMask;
@@ -66,7 +64,7 @@ void FrekvensPanel::writeDeepPixel(unsigned short x, unsigned short y, unsigned 
         {
             *wp &= mc;
         }
-        wp+=_pageStride;
+        wp += _pageStride;
     }
 }
 
@@ -75,11 +73,11 @@ void FrekvensPanel::scan()
     if (_numPages == 1)
     {
         // single bit plane
-        unsigned short* p = &buf[0];
-        for (int i=0;i<_pageStride;i++)
+        unsigned short *p = &buf[0];
+        for (int i = 0; i < _pageStride; i++)
         {
             unsigned short w = *p++;
-            for (int j=0;j<16;j++)
+            for (int j = 0; j < 16; j++)
             {
                 digitalWrite(_pData, w & 0x01);
                 w >>= 1;
@@ -88,18 +86,18 @@ void FrekvensPanel::scan()
                 digitalWrite(_pClock, LOW);
             }
         }
-        digitalWrite(_pLatch,HIGH);
+        digitalWrite(_pLatch, HIGH);
         delayMicroseconds(1);
-        digitalWrite(_pLatch,LOW);
+        digitalWrite(_pLatch, LOW);
     }
     else
     {
         // multiple bit planes
-        unsigned short* p = &buf[_pageStride * _activePage];
-        for (int i=0;i<_pageStride;i++)
+        unsigned short *p = &buf[_pageStride * _activePage];
+        for (int i = 0; i < _pageStride; i++)
         {
             unsigned short w = *p++;
-            for (int j=0;j<16;j++)
+            for (int j = 0; j < 16; j++)
             {
                 digitalWrite(_pData, w & 0x01);
                 w >>= 1;
@@ -108,9 +106,9 @@ void FrekvensPanel::scan()
                 digitalWrite(_pClock, LOW);
             }
         }
-        digitalWrite(_pLatch,HIGH);
+        digitalWrite(_pLatch, HIGH);
         delayMicroseconds(1);
-        digitalWrite(_pLatch,LOW);
+        digitalWrite(_pLatch, LOW);
         _activePage++;
         _activePage %= _numPages;
     }
@@ -128,24 +126,22 @@ unsigned short FrekvensPanel::height()
 
 boolean FrekvensPanel::getPixel(int16_t x, int16_t y)
 {
-    if (x > 7) { y += 0x10; x &= 0x07; }
-    unsigned short address = (x + (y << 3)) & _addressMask;
+    unsigned short address = (lut[y][x]) & _addressMask;
     unsigned short ba = address >> 4;
     unsigned short br = address & 0x0F;
-    unsigned short* wp = &buf[ba];
+    unsigned short *wp = &buf[ba];
     return ((*wp) >> br) & 0x01;
 }
 
 void FrekvensPanel::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
-    if ((x >= 0) && (y >= 0) && (x < _width) && ( y < _height))
+    if ((x >= 0) && (y >= 0) && (x < _width) && (y < _height))
     {
-        if (x > 7) { y += 0x10; x &= 0x07; }
-        unsigned short address = (x + (y << 3)) & _addressMask;
+        unsigned short address = (lut[y][x]) & _addressMask;
         unsigned short ba = address >> 4;
         unsigned short br = address & 0x0F;
         unsigned short ms = (1 << br);
-        unsigned short* wp = &buf[ba];
+        unsigned short *wp = &buf[ba];
         if (color & 0x01)
         {
             *wp |= ms;
@@ -159,36 +155,30 @@ void FrekvensPanel::drawPixel(int16_t x, int16_t y, uint16_t color)
 
 void FrekvensPanel::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 {
-    for (int i=0;i<h;i++)
+    for (int i = 0; i < h; i++)
     {
-        drawPixel(x,y+i,color);
+        drawPixel(x, y + i, color);
     }
-
 }
 
 void FrekvensPanel::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 {
-    for (int i=0;i<w;i++)
+    for (int i = 0; i < w; i++)
     {
-        drawPixel(x+i,y,color);
+        drawPixel(x + i, y, color);
     }
 }
 
 void FrekvensPanel::fillScreen(uint16_t color)
 {
-    for (int i=0;i<_numPages;i++)
+    for (int i = 0; i < _numPages; i++)
     {
         unsigned short w = color & 0x01 ? 0xFFFF : 0x0000;
         color >>= 1;
-        unsigned short* p = &buf[i * _pageStride];
-        for (int j=0;j<_pageStride;j++)
+        unsigned short *p = &buf[i * _pageStride];
+        for (int j = 0; j < _pageStride; j++)
         {
             *p++ = w;
         }
     }
 }
-
-
-
-
-
