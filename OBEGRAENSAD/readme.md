@@ -1,4 +1,4 @@
-This is a first rough cut of an Arduino library for the IKEA OBEGRAENSAD LED panels developed by Ikea jointly with Teenage Engineering.
+This is a first rough cut of an Arduino library for the IKEA OBEGRAENSAD LED panels developed by Ikea jointly with Swedish House Mafia.
 
 This is a wip of the original work of /u/frumperino over at https://github.com/frumperino/FrekvensPanel
 
